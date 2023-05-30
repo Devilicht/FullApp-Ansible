@@ -1,0 +1,10 @@
+---
+- name: Configurar relação de confiança entre VMs
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Adicionar chave pública da VM no arquivo authorized_keys
+      authorized_key:
+        user: vagrant
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
