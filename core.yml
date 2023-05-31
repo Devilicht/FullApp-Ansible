@@ -1,0 +1,58 @@
+---
+- name: Configurar chaves SSH e instalar Ansible
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Instalar pacote epel-release
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Instalar Ansible
+      yum:
+        name: ansible
+        state: present
+
+    - name: Adicionar hosts ao arquivo /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      loop:
+        - "192.168.60.100 control-node"
+        - "192.168.60.101 app01"
+        - "192.168.60.102 db01"
+
+    - name: Configurar arquivo /etc/ansible/hosts
+      blockinfile:
+        path: /etc/ansible/hosts
+        block: |
+          [web]
+          app01 ansible_host=192.168.60.101
+
+          [db]
+          db01 ansible_host=192.168.60.102
+
+    - name: Criar diretório .ssh
+      file:
+        path: "{{ ansible_user_dir }}/.ssh"
+        state: directory
+        mode: '0700'
+
+    - name: Gerar chave SSH
+      ansible.posix.ssh_keypair:
+        path: "{{ ansible_user_dir }}/.ssh/id_rsa"
+        type: rsa
+        size: 2048
+
+    - name: Definir permissões corretas para diretórios e arquivos de chaves SSH
+      file:
+        path: "{{ item }}"
+        mode: "{{ item_mode }}"
+      loop:
+        - "{{ ansible_user_dir }}/.ssh"
+        - "{{ ansible_user_dir }}/.ssh/id_rsa"
+        - "{{ ansible_user_dir }}/.ssh/id_rsa.pub"
+        - "{{ ansible_user_dir }}/.ssh/authorized_keys"
+      vars:
+        item_mode: '0600'

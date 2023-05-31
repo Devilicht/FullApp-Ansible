@@ -6,5 +6,5 @@
   tasks:
     - name: Adicionar chave pública da VM no arquivo authorized_keys
       authorized_key:
-        user: vagrant
+        user: root
         key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
